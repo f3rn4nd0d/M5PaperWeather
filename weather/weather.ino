@@ -13,6 +13,10 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+   Version 1.1 by Fernando Doutel. Modified some parts of the original interface 
+   to accomodate Thermal Comfort (AKA feels like temperature outside) plus 
+   normalized moon phase
 */
 /**
   * @file Weather.h
@@ -22,7 +26,7 @@
   
 #include <M5EPD.h>
 #include "Config.h"
-#include "ConfigOverride.h" // Remove this line
+//include "ConfigOverride.h" // Remove this line
 #include "Data.h"
 #include "Display.h"
 #include "Battery.h"
@@ -43,6 +47,7 @@ WeatherDisplay myDisplay(myData); // The global display helper class
 /* Start and M5Paper instance */
 void setup()
 {
+//Serial.begin(115200); 
 #ifndef REFRESH_PARTLY
    InitEPD(true);
    if (StartWiFi(myData.wifiRSSI)) {
@@ -82,7 +87,7 @@ void setup()
    }
    myData.nvsCounter++;
    myData.SaveNVS();
-   ShutdownEPD(60); // 1 minute
+   ShutdownEPD(10); // 1 minute
 #endif // REFRESH_PARTLY   
 }
 
