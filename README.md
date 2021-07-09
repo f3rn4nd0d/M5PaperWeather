@@ -18,6 +18,7 @@
   * The internal SH30 sensor data (temperature and humidity) with the current date and time
   * A hourly forecast with hour, temperature and a weather icon.
   * Some detailt forecast graphs with temperature, rain, humidity and pressure
+  * Interface has been modified from ver 1.0 to accomodate Feels Like temperature and normalized moon phase
 
 ### Disclaimer
    I don't take any responsibility nor liability for using this software nor for the 
