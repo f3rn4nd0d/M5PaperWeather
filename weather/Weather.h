@@ -43,6 +43,11 @@ public:
    float  winddir;                         //!< Wind direction
    float  windspeed;                       //!< Wind speed
 
+   // My definitions here
+   float  currentTemp;                     //!< Current temperature
+   float  currentThermalComfort;           //!< Current thermal comfort
+   // My definitions here
+
    time_t hourlyTime[MAX_HOURLY];          //!< timestamp of the hourly forecast
    float  hourlyMaxTemp[MAX_HOURLY];       //!< max temperature forecast
    String hourlyMain[MAX_HOURLY];          //!< description of the hourly forecast
@@ -111,6 +116,11 @@ protected:
       winddir           = root["current"]["wind_deg"].as<float>();
       windspeed         = root["current"]["wind_speed"].as<float>();
 
+      // My code here 
+      currentTemp       = root["current"]["temp"].as<float>();
+      currentThermalComfort = root["current"]["feels_like"].as<float>();
+      // My code here 
+
       JsonArray hourly_list = root["hourly"];
       hourlyTime[0]    = LocalTime(root["current"]["dt"].as<int>());
       hourlyMaxTemp[0] = root["current"]["temp"].as<float>();
@@ -150,6 +160,11 @@ public:
       , sunset(0)
       , winddir(0)
       , windspeed(0)
+
+      // My definitions here
+      , currentTemp(0)                     //!< Current temperature
+      , currentThermalComfort(0)           //!< Current thermal comfort
+      // My definitions here
       , maxRain(MIN_RAIN)
    {
       Clear();
@@ -165,6 +180,8 @@ public:
       winddir           = 0;
       windspeed         = 0;
       maxRain           = MIN_RAIN;
+      currentTemp       = 0;
+      currentThermalComfort = 0;
       memset(hourlyMaxTemp,    0, sizeof(hourlyMaxTemp));
       memset(forecastMaxTemp,  0, sizeof(forecastMaxTemp));
       memset(forecastMinTemp,  0, sizeof(forecastMinTemp));
