@@ -70,7 +70,10 @@ public:
       Serial.println("Sht30Humidity: "   + String(sht30Humidity));
       Serial.println("MoonRise: "        + getDateTimeString(moonRise));
       Serial.println("MoonSet: "         + getDateTimeString(moonSet));
-      
+      //my Serial Print
+      Serial.println("Temp: " + String(weather.currentTemp));
+      Serial.println("Feels Like: "   + String(weather.currentThermalComfort));     
+      //my Serial Print
       Serial.println("Sunrise: "         + getDateTimeString(weather.sunrise));
       Serial.println("Sunset: "          + getDateTimeString(weather.sunset));
       Serial.println("Winddir: "         + String(weather.winddir));
