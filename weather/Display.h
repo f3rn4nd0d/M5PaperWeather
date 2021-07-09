@@ -42,6 +42,10 @@ protected:
    void DrawIcon(int x, int y, const uint16_t *icon, int dx = 64, int dy = 64, bool highContrast = false);
    void DrawMoon(int x, int y, int dd, int mm, int yy);
    
+   // My function here
+   void DrawPhasePerc(int x, int y, int dx, int dy, int dd, int mm, int yy);
+   // My function here
+   
    void DrawHead();
    void DrawRSSI(int x, int y);
    void DrawBattery(int x, int y);
@@ -139,12 +143,27 @@ void WeatherDisplay::DrawSunInfo(int x, int y, int dx, int dy)
    canvas.drawCentreString("Sun", x + dx / 2, y + 7, 1);
    canvas.drawLine(x, y + 35, x + dx, y + 35, M5EPD_Canvas::G15);
 
-   canvas.setTextSize(3);
+/*   canvas.setTextSize(3);
    DrawIcon(x + 25, y + 55, (uint16_t *) SUNRISE64x64);
    canvas.drawString(getHourMinString(myData.weather.sunrise), x + 105, y + 80, 1);
    
    DrawIcon(x + 25, y + 150, (uint16_t *) SUNSET64x64);
    canvas.drawString(getHourMinString(myData.weather.sunset), x + 105, y + 175, 1);
+}
+*/
+
+   canvas.setTextSize(3);
+   DrawIcon(x + 25, y + 40, (uint16_t *) SUNRISE64x64);
+   canvas.drawString(getHourMinString(myData.weather.sunrise), x + 105, y + 65, 1);
+   
+   DrawIcon(x + 25, y + 105, (uint16_t *) SUNSET64x64);
+   canvas.drawString(getHourMinString(myData.weather.sunset), x + 105, y + 130, 1);
+
+   DrawIcon(x + 25, y + 170, (uint16_t *) TEMPERATURE64x64);
+   canvas.drawString(String(myData.weather.currentThermalComfort), x + 105, y + 195, 1);
+   canvas.setTextSize(1);
+   canvas.drawCentreString("feels like (C)", x + dx / 2, y + 182, 1);
+
 }
 
 /* The moon phase drawing was from the github project
@@ -186,6 +205,9 @@ void WeatherDisplay::DrawMoon(int x, int y, int dd, int mm, int yy)
       canvas.drawLine(pW3x, pW3y, pW4x, pW4y, M5EPD_Canvas::G15);
    }
    canvas.drawCircle(x + diameter - 1, y + diameter, diameter / 2, M5EPD_Canvas::G15);
+   // My code here
+   DrawPhasePerc(232, 35, 232, 251, dd, mm, yy);
+   // My code here
 }
 
 /* Draw the moon information with moonrise, moonset and moon phase */
@@ -206,7 +228,18 @@ void WeatherDisplay::DrawMoonInfo(int x, int y, int dx, int dy)
    DrawIcon(x + 30, y + 105, (uint16_t *) MOONSET64x64);
    canvas.drawString(getHourMinString(myData.moonSet), x + 110, y + 130, 1);
 
-   DrawMoon(x + dx / 2 - 45, y + 160, date_struct.day, date_struct.mon, date_struct.year);
+   DrawMoon(x + dx / 2 - 100, y + 160, date_struct.day, date_struct.mon, date_struct.year);
+   //DrawMoon(x + dx / 2 - 100, y + 160, date_struct.day, date_struct.mon, date_struct.year);
+
+}
+/* My Function */
+
+void WeatherDisplay::DrawPhasePerc(int x, int y, int dx, int dy, int dd, int mm, int yy)
+{
+  double    Phase           = NormalizedMoonPhase(dd, mm, yy);
+  
+  canvas.drawString(String(Phase), x + 125, y + 195, 1);
+
 }
 
 /* Draw the in the wind section
