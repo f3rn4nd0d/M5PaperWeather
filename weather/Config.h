@@ -21,16 +21,20 @@
   */
 #pragma once
 
-#define VERSION          "Version 1.0"
-#define CITY_NAME        "City"
+#define VERSION          "Version 2.0"
+#define CITY_NAME        "Grajera, Segovia"
 
-// change to your location
-#define LATITUDE         47.69732 
-#define LONGITUDE         8.63493
+// Location: Grajera (Segovia), 1014 m. Fine tune with the exact coordinates of the house if you want.
+#define LATITUDE         41.38150
+#define LONGITUDE        -3.61000
 
-#define OPENWEATHER_SRV  "api.openweathermap.org"
-#define OPENWEATHER_PORT 80
-#define OPENWEATHER_API  "your openweathermap api key"
+// Weather data: Open-Meteo, free and without API key (data licence CC BY 4.0, attribution: open-meteo.com)
+#define OPEN_METEO_SRV   "api.open-meteo.com"
+#define OPEN_METEO_PORT  443
+#define WEATHER_TIMEZONE "Europe/Madrid"
+
+// Minutes to wait before a new try when wifi or the weather download fails
+#define RETRY_MINUTES    10
 
 #define WIFI_SSID        "your wifi ssid"
 #define WIFI_PW          "your wifi password"
