@@ -22,15 +22,13 @@
 #pragma once
 #include "Data.h"
 #include "Icons.h"
-#include "Logo.h"
-#include "LogoRetro.h"
 #include "Font.h"
 
 /*
  * Layout (960 x 540), inspired by Apple's weather: one big number, rounded tiles, no frames,
  * no section titles, one typeface (Inter, see scripts/make_font.py) and four ink levels.
  *
- *   header  : logos .......................... wifi battery
+ *   (no header: the whole top half belongs to the weather)
  *   hero    : date / temperature / icon        | wind  sun
  *                                              | moon  indoor
  *   hourly  : 8 slots, every 3 hours
@@ -38,18 +36,17 @@
  */
 static const int M        = 32;    //!< Outer margin
 static const int GAP      = 12;    //!< Gap between tiles
-static const int TILE_W   = 250;   //!< Width of a small tile
-static const int TILE_H   = 102;   //!< Height of a small tile
-static const int TILE_X0  = 416;   //!< Left column of the tiles
+static const int TOP_Y    = 24;    //!< Top of the weather block (there is no header)
+static const int TOP_H    = 258;   //!< Height of the hero + tiles block
+static const int TILE_W   = 240;   //!< Width of a tile
+static const int TILE_H   = (TOP_H - GAP) / 2;
+static const int TILE_X0  = 436;   //!< Left column of the tiles
 static const int TILE_X1  = TILE_X0 + TILE_W + GAP;
-static const int TILE_Y0  = 56;
+static const int TILE_Y0  = TOP_Y;
 static const int TILE_Y1  = TILE_Y0 + TILE_H + GAP;
-static const int HOURLY_Y = 282;
-static const int HOURLY_H = 128;
+static const int HOURLY_Y = TOP_Y + TOP_H + 8;
+static const int HOURLY_H = 122;
 static const int GRAPH_Y  = 420;
-
-static const int LOGO_XH_TOP    = 4;    //!< x-height band of the Casa Grajera bitmap (see Logo.h)
-static const int LOGO_XH_BOTTOM = 17;
 
 static const int INK      = 15;    //!< Black
 static const int INK_MID  = 8;     //!< Secondary text
@@ -73,17 +70,10 @@ protected:
    void   DrawText(const FontInfo &font, int x, int baseline, const String &text, int ink = INK, int align = 0);
 
    // small helpers
-   void   DrawCircle(int32_t x, int32_t y, int32_t r, uint32_t color, int32_t degFrom = 0, int32_t degTo = 360);
    void   DrawLine2(int x0, int y0, int x1, int y1, int ink);
    void   DrawTile(int x, int y, int dx, int dy);
    void   DrawIcon(int x, int y, const uint16_t *icon, int dx = 64, int dy = 64, bool highContrast = false);
-   void   DrawWeatherIcon(int x, int y, const String &icon);
-   void   DrawBitmap(int x, int y, const uint8_t *data, int dx, int dy);
-
-   // header
-   void   DrawHead();
-   void   DrawRSSI(int x, int y);
-   void   DrawBattery(int x, int y);
+   void   DrawWeatherIcon(int x, int y, const String &icon, int scaleNum = 1, int scaleDen = 1);
 
    // hero
    void   DrawHero(int x, int y, int dx, int dy);
@@ -185,18 +175,6 @@ void WeatherDisplay::DrawText(const FontInfo &font, int x, int baseline, const S
 
 /* ------------------------------------------------------------------ helpers */
 
-/* Draw a circle with optional start and end point */
-void WeatherDisplay::DrawCircle(int32_t x, int32_t y, int32_t r, uint32_t color, int32_t degFrom /* = 0 */, int32_t degTo /* = 360 */)
-{
-   for (int i = degFrom; i < degTo; i++) {
-      double radians = i * PI / 180;
-      double px      = x + r * cos(radians);
-      double py      = y + r * sin(radians);
-
-      canvas.drawPixel(px, py, color);
-   }
-}
-
 /* A line two pixels thick */
 void WeatherDisplay::DrawLine2(int x0, int y0, int x1, int y1, int ink)
 {
@@ -226,38 +204,51 @@ void WeatherDisplay::DrawIcon(int x, int y, const uint16_t *icon, int dx /*= 64*
    }
 }
 
-/* Draw the weather icon for an openweathermap style code (01d, 10n ...) */
-void WeatherDisplay::DrawWeatherIcon(int x, int y, const String &icon)
+/* The 64x64 icon data for an openweathermap style code (01d, 10n ...) */
+static const uint16_t *WeatherIconData(const String &icon)
 {
-        if (icon == "01d") DrawIcon(x, y, (uint16_t *) image_data_01d, 64, 64, true);
-   else if (icon == "01n") DrawIcon(x, y, (uint16_t *) image_data_03n, 64, 64, true);
-   else if (icon == "02d") DrawIcon(x, y, (uint16_t *) image_data_02d, 64, 64, true);
-   else if (icon == "02n") DrawIcon(x, y, (uint16_t *) image_data_02n, 64, 64, true);
-   else if (icon == "03d") DrawIcon(x, y, (uint16_t *) image_data_03d, 64, 64, true);
-   else if (icon == "03n") DrawIcon(x, y, (uint16_t *) image_data_03n, 64, 64, true);
-   else if (icon == "04d") DrawIcon(x, y, (uint16_t *) image_data_04d, 64, 64, true);
-   else if (icon == "04n") DrawIcon(x, y, (uint16_t *) image_data_03n, 64, 64, true);
-   else if (icon == "09d") DrawIcon(x, y, (uint16_t *) image_data_09d, 64, 64, true);
-   else if (icon == "09n") DrawIcon(x, y, (uint16_t *) image_data_09n, 64, 64, true);
-   else if (icon == "10d") DrawIcon(x, y, (uint16_t *) image_data_10d, 64, 64, true);
-   else if (icon == "10n") DrawIcon(x, y, (uint16_t *) image_data_03n, 64, 64, true);
-   else if (icon == "11d") DrawIcon(x, y, (uint16_t *) image_data_11d, 64, 64, true);
-   else if (icon == "11n") DrawIcon(x, y, (uint16_t *) image_data_11n, 64, 64, true);
-   else if (icon == "13d") DrawIcon(x, y, (uint16_t *) image_data_13d, 64, 64, true);
-   else if (icon == "13n") DrawIcon(x, y, (uint16_t *) image_data_13n, 64, 64, true);
-   else if (icon == "50d") DrawIcon(x, y, (uint16_t *) image_data_50d, 64, 64, true);
-   else if (icon == "50n") DrawIcon(x, y, (uint16_t *) image_data_50n, 64, 64, true);
-   else DrawIcon(x, y, (uint16_t *) image_data_unknown, 64, 64, true);
+        if (icon == "01d") return (const uint16_t *) image_data_01d;
+   else if (icon == "01n") return (const uint16_t *) image_data_03n;
+   else if (icon == "02d") return (const uint16_t *) image_data_02d;
+   else if (icon == "02n") return (const uint16_t *) image_data_02n;
+   else if (icon == "03d") return (const uint16_t *) image_data_03d;
+   else if (icon == "03n") return (const uint16_t *) image_data_03n;
+   else if (icon == "04d") return (const uint16_t *) image_data_04d;
+   else if (icon == "04n") return (const uint16_t *) image_data_03n;
+   else if (icon == "09d") return (const uint16_t *) image_data_09d;
+   else if (icon == "09n") return (const uint16_t *) image_data_09n;
+   else if (icon == "10d") return (const uint16_t *) image_data_10d;
+   else if (icon == "10n") return (const uint16_t *) image_data_03n;
+   else if (icon == "11d") return (const uint16_t *) image_data_11d;
+   else if (icon == "11n") return (const uint16_t *) image_data_11n;
+   else if (icon == "13d") return (const uint16_t *) image_data_13d;
+   else if (icon == "13n") return (const uint16_t *) image_data_13n;
+   else if (icon == "50d") return (const uint16_t *) image_data_50d;
+   else if (icon == "50n") return (const uint16_t *) image_data_50n;
+   return (const uint16_t *) image_data_unknown;
 }
 
-/* Draw a logo bitmap (4-bit ink levels, one byte per pixel) */
-void WeatherDisplay::DrawBitmap(int x, int y, const uint8_t *data, int dx, int dy)
+/* Draw a weather icon; scaleNum / scaleDen enlarge it with bilinear smoothing (3/2 = 96 px) */
+void WeatherDisplay::DrawWeatherIcon(int x, int y, const String &icon, int scaleNum, int scaleDen)
 {
-   for (int yi = 0; yi < dy; yi++) {
-      for (int xi = 0; xi < dx; xi++) {
-         uint8_t ink = data[yi * dx + xi];
+   const uint16_t *data = WeatherIconData(icon);
+   int             size = 64 * scaleNum / scaleDen;
 
-         if (ink > 0) canvas.drawPixel(x + xi, y + yi, ink);
+   for (int yi = 0; yi < size; yi++) {
+      for (int xi = 0; xi < size; xi++) {
+         float sx = (xi + 0.5f) * scaleDen / scaleNum - 0.5f;
+         float sy = (yi + 0.5f) * scaleDen / scaleNum - 0.5f;
+         int   x0 = (int) floor(sx), y0 = (int) floor(sy);
+         float fx = sx - x0, fy = sy - y0;
+         float v  = 0;
+
+         for (int k = 0; k < 4; k++) {
+            int   px = x0 + (k & 1), py = y0 + (k >> 1);
+            float wt = ((k & 1) ? fx : 1 - fx) * ((k >> 1) ? fy : 1 - fy);
+
+            if (px >= 0 && py >= 0 && px < 64 && py < 64 && 15 - (data[py * 64 + px] / 4096) > 0) v += 15 * wt;
+         }
+         if ((int) round(v) > 0) canvas.drawPixel(x + xi, y + yi, (int) round(v));
       }
    }
 }
@@ -291,52 +282,9 @@ String WeatherDisplay::LongDate()
    return String(days[weekday(t)]) + " " + String(day(t)) + " " + String(months[month(t)]) + "  " + String(buf);
 }
 
-/* ------------------------------------------------------------------ header */
-
-/* Draw a the rssi value as circle parts */
-void WeatherDisplay::DrawRSSI(int x, int y)
-{
-   int iQuality = WifiGetRssiAsQualityInt(myData.wifiRSSI);
-
-   if (iQuality >= 80) DrawCircle(x + 12, y, 16, M5EPD_Canvas::G15, 225, 315);
-   if (iQuality >= 40) DrawCircle(x + 12, y, 12, M5EPD_Canvas::G15, 225, 315);
-   if (iQuality >= 20) DrawCircle(x + 12, y,  8, M5EPD_Canvas::G15, 225, 315);
-   if (iQuality >= 10) DrawCircle(x + 12, y,  4, M5EPD_Canvas::G15, 225, 315);
-   DrawCircle(x + 12, y, 2, M5EPD_Canvas::G15, 225, 315);
-}
-
-/* Draw a the battery icon */
-void WeatherDisplay::DrawBattery(int x, int y)
-{
-   canvas.drawRoundRect(x, y, 34, 16, 4, INK);
-   canvas.fillRect(x + 35, y + 5, 3, 6, INK);
-   int w = constrain(myData.batteryCapacity, 0, 100) * 28 / 100;
-
-   canvas.fillRoundRect(x + 3, y + 3, w, 10, 2, INK);
-}
-
-/* Header: both logos centred, wifi and battery on the right */
-void WeatherDisplay::DrawHead()
-{
-   const int cy = 26;                                   // common centre line of the header
-   // Casa Grajera: centre its x-height band (rows 4..17 of the bitmap), the "j" hangs below
-   int lockupW = LOGO_W + 32 + RETRO_W;                  // both logos + divider, centred on the screen
-   int lx      = (maxX - lockupW) / 2;
-
-   DrawBitmap(lx, cy - (LOGO_XH_TOP + LOGO_XH_BOTTOM) / 2, LOGO_CASA_GRAJERA, LOGO_W, LOGO_H);
-   canvas.drawLine(lx + LOGO_W + 16, cy - 11, lx + LOGO_W + 16, cy + 11, INK_SOFT);
-   DrawBitmap(lx + LOGO_W + 32, cy - RETRO_H / 2, RETRO_MARK, RETRO_W, RETRO_H);
-
-   int right = maxX - M;
-
-   DrawBattery(right - 38, cy - 8);
-   DrawText(FONT_CAP, right - 50, cy + 7, String(myData.batteryCapacity) + "%", INK_MID, 2);
-   DrawRSSI(right - 130, cy + 12);
-}
-
 /* ------------------------------------------------------------------ hero */
 
-/* Date, current temperature, icon, min / max and the short description */
+/* Date, current temperature, icon, min / max and the short description (all centred) */
 void WeatherDisplay::DrawHero(int x, int y, int dx, int dy)
 {
    Weather &w    = myData.weather;
@@ -344,23 +292,24 @@ void WeatherDisplay::DrawHero(int x, int y, int dx, int dy)
    String   hi   = "Máx " + String((int) round(w.forecastMaxTemp[0])) + "°";
    String   lo   = "Mín " + String((int) round(w.forecastMinTemp[0])) + "°";
    String   desc = w.hourlyMain[0] + "  ·  sensación " + String((int) round(w.currentThermalComfort)) + "°";
-   int      cx   = x + dx / 2;                        // everything is centred between the margin and the tiles
+   int      cx   = x + dx / 2;                        // centred between the margin and the tiles
 
-   DrawText(FONT_BODY, cx, y + 28, LongDate(), INK_MID, 1);
+   DrawText(FONT_XBODY, cx, y + 30, LongDate(), INK_MID, 1);
 
    // big number + (icon over max / min) as one block
+   int iconS = 96;                                    // the 64 px icon, enlarged 3/2
    int numW  = TextWidth(FONT_HERO, temp);
-   int sideW = max(64, max(TextWidth(FONT_BODY, hi), TextWidth(FONT_BODY, lo)));
-   int gap   = 30;
+   int sideW = max(iconS, max(TextWidth(FONT_XBODY, hi), TextWidth(FONT_XBODY, lo)));
+   int gap   = 22;
    int left  = cx - (numW + gap + sideW) / 2;
    int sideX = left + numW + gap;
 
-   DrawText(FONT_HERO, left, y + 172, temp);
-   DrawWeatherIcon(sideX + (sideW - 64) / 2, y + 44, w.hourlyIcon[0]);
-   DrawText(FONT_BODY, sideX, y + 140, hi);
-   DrawText(FONT_BODY, sideX, y + 172, lo, INK_MID);
+   DrawText(FONT_HERO, left, y + 196, temp);
+   DrawWeatherIcon(sideX + (sideW - iconS) / 2, y + 46, w.hourlyIcon[0], 3, 2);
+   DrawText(FONT_XBODY, sideX + (sideW - TextWidth(FONT_XBODY, hi)) / 2, y + 166, hi);
+   DrawText(FONT_XBODY, sideX + (sideW - TextWidth(FONT_XBODY, lo)) / 2, y + 198, lo, INK_MID);
 
-   DrawText(FONT_BODY, cx, y + 210, desc, INK_MID, 1);
+   DrawText(FONT_XBODY, cx, y + 246, desc, INK_MID, 1);
 }
 
 /* Message shown instead of the weather when the download failed */
@@ -368,10 +317,10 @@ void WeatherDisplay::DrawNoData(int x, int y, int dx, int dy)
 {
    int cx = x + dx / 2;
 
-   DrawText(FONT_BODY, cx, y + 28, LongDate(), INK_MID, 1);
-   DrawText(FONT_TITLE, cx, y + 96, "Sin datos del tiempo", INK, 1);
-   DrawText(FONT_BODY, cx, y + 140, "No se pudo descargar la previsión.", INK_MID, 1);
-   DrawText(FONT_BODY, cx, y + 172, "Nuevo intento en " + String(RETRY_MINUTES) + " minutos.", INK_MID, 1);
+   DrawText(FONT_XBODY, cx, y + 30, LongDate(), INK_MID, 1);
+   DrawText(FONT_XTITLE, cx, y + 120, "Sin datos del tiempo", INK, 1);
+   DrawText(FONT_XBODY, cx, y + 170, "No se pudo descargar la previsión.", INK_MID, 1);
+   DrawText(FONT_XBODY, cx, y + 206, "Nuevo intento en " + String(RETRY_MINUTES) + " minutos.", INK_MID, 1);
 }
 
 /* ------------------------------------------------------------------ tiles */
@@ -383,16 +332,16 @@ static const char *CompassName(float deg)
    return names[((int) round(deg / 45.0)) % 8];
 }
 
-/* Wind: a small compass with the arrow pointing where the wind blows to, speed and origin.
- * Every tile measures its content and centres it, so nothing hugs the left edge. */
+/* Wind: a compass with the arrow pointing where the wind blows to, speed and origin.
+ * Every tile measures its content and centres it, so nothing hugs an edge. */
 void WeatherDisplay::DrawWindTile(int x, int y)
 {
    float  angle = myData.weather.winddir;
    String speed = String((int) round(myData.weather.windspeed));
    String name  = CompassName(angle);
-   int    r     = 34;
-   int    textW = max(TextWidth(FONT_TITLE, speed) + 6 + TextWidth(FONT_CAP, "km/h"), TextWidth(FONT_BODY, name));
-   int    gap   = 20;
+   int    r     = 40;
+   int    textW = max(TextWidth(FONT_XTITLE, speed) + 6 + TextWidth(FONT_XCAP, "km/h"), TextWidth(FONT_XBODY, name));
+   int    gap   = 16;
    int    left  = x + (TILE_W - (2 * r + gap + textW)) / 2;
    int    cx    = left + r, cy = y + TILE_H / 2;
    int    tx    = left + 2 * r + gap;
@@ -405,32 +354,32 @@ void WeatherDisplay::DrawWindTile(int x, int y)
    for (int i = 0; i < 4; i++) {                     // N E S W ticks
       double t = i * PI / 2;
 
-      canvas.drawLine(cx + (r - 8) * sin(t), cy - (r - 8) * cos(t), cx + (r - 1) * sin(t), cy - (r - 1) * cos(t), i == 0 ? INK : INK_SOFT);
+      canvas.drawLine(cx + (r - 9) * sin(t), cy - (r - 9) * cos(t), cx + (r - 1) * sin(t), cy - (r - 1) * cos(t), i == 0 ? INK : INK_SOFT);
    }
    // arrow: from the origin of the wind through the centre, head on the far side
-   DrawLine2(cx + ux * (r - 12), cy + uy * (r - 12), cx - ux * 8, cy - uy * 8, INK);
-   double hx = cx - ux * 17, hy = cy - uy * 17;      // tip
-   double bx = cx - ux * 4,  by = cy - uy * 4;       // base centre
-   canvas.fillTriangle(hx, hy, bx - uy * 7, by + ux * 7, bx + uy * 7, by - ux * 7, INK);
+   DrawLine2(cx + ux * (r - 13), cy + uy * (r - 13), cx - ux * 9, cy - uy * 9, INK);
+   double hx = cx - ux * 20, hy = cy - uy * 20;      // tip
+   double bx = cx - ux * 5,  by = cy - uy * 5;       // base centre
+   canvas.fillTriangle(hx, hy, bx - uy * 8, by + ux * 8, bx + uy * 8, by - ux * 8, INK);
 
-   DrawText(FONT_TITLE, tx, y + 52, speed);
-   DrawText(FONT_CAP, tx + TextWidth(FONT_TITLE, speed) + 6, y + 52, "km/h", INK_MID);
-   DrawText(FONT_BODY, tx, y + 84, name, INK_MID);
+   DrawText(FONT_XTITLE, tx, cy - 1, speed);
+   DrawText(FONT_XCAP, tx + TextWidth(FONT_XTITLE, speed) + 6, cy - 1, "km/h", INK_MID);
+   DrawText(FONT_XBODY, tx, cy + 32, name, INK_MID);
 }
 
 /* Sun: sunrise and sunset, the block (arrow + time) centred in the tile */
 void WeatherDisplay::DrawSunTile(int x, int y)
 {
-   String rise = getHourMinString(myData.weather.sunrise);
-   String set  = getHourMinString(myData.weather.sunset);
-   int    timeW = max(TextWidth(FONT_TITLE, rise), TextWidth(FONT_TITLE, set));
-   int    left  = x + (TILE_W - (16 + 22 + timeW)) / 2;
+   String rise  = getHourMinString(myData.weather.sunrise);
+   String set   = getHourMinString(myData.weather.sunset);
+   int    timeW = max(TextWidth(FONT_XTITLE, rise), TextWidth(FONT_XTITLE, set));
+   int    left  = x + (TILE_W - (20 + 22 + timeW)) / 2;
 
    DrawTile(x, y, TILE_W, TILE_H);
-   DrawTriangle(left, y + 19, 16, true, INK);
-   DrawText(FONT_TITLE, left + 38, y + 43, rise);
-   DrawTriangle(left, y + 65, 16, false, INK_MID);
-   DrawText(FONT_TITLE, left + 38, y + 87, set, INK_MID);
+   DrawTriangle(left, y + 23, 20, true, INK);
+   DrawText(FONT_XTITLE, left + 42, y + 56, rise);
+   DrawTriangle(left, y + 72, 20, false, INK_MID);
+   DrawText(FONT_XTITLE, left + 42, y + 105, set, INK_MID);
 }
 
 /* The moon disc: dark side grey, lit side white, drawn from the normalized phase (0 new, 0.5 full) */
@@ -462,50 +411,50 @@ void WeatherDisplay::DrawMoonTile(int x, int y)
    String name  = names[((int) (phase * 8.0 + 0.5)) % 8];
    String rise  = getHourMinString(myData.moonRise);
    String set   = getHourMinString(myData.moonSet);
-   int    r     = 24;
-   int    rowW  = (9 + 5 + TextWidth(FONT_CAP, rise)) + 18 + (9 + 5 + TextWidth(FONT_CAP, set));
-   int    textW = max(TextWidth(FONT_BODY, name), rowW);
-   int    gap   = 18;
+   int    r     = 30;
+   int    rowW  = (9 + 5 + TextWidth(FONT_CAP, rise)) + 16 + (9 + 5 + TextWidth(FONT_CAP, set));
+   int    textW = max(TextWidth(FONT_XBODY, name), rowW);
+   int    gap   = 16;
    int    left  = x + (TILE_W - (2 * r + gap + textW)) / 2;
    int    tx    = left + 2 * r + gap;
-   int    x2    = tx + (9 + 5 + TextWidth(FONT_CAP, rise)) + 18;
+   int    x2    = tx + (9 + 5 + TextWidth(FONT_CAP, rise)) + 16;
 
    DrawTile(x, y, TILE_W, TILE_H);
    DrawMoonDisc(left + r, y + TILE_H / 2, r, phase);
-   DrawText(FONT_BODY, tx, y + 34, name);
-   DrawText(FONT_CAP, tx, y + 57, String(illum) + "%", INK_MID);
-   DrawTriangle(tx, y + 72, 9, true, INK);
-   DrawText(FONT_CAP, tx + 14, y + 83, rise);
-   DrawTriangle(x2, y + 72, 9, false, INK_MID);
-   DrawText(FONT_CAP, x2 + 14, y + 83, set, INK_MID);
+   DrawText(FONT_XBODY, tx, y + 40, name);
+   DrawText(FONT_XCAP, tx, y + 68, String(illum) + "%", INK_MID);
+   DrawTriangle(tx, y + 88, 9, true, INK);
+   DrawText(FONT_CAP, tx + 14, y + 99, rise);
+   DrawTriangle(x2, y + 88, 9, false, INK_MID);
+   DrawText(FONT_CAP, x2 + 14, y + 99, set, INK_MID);
 }
 
 /* Indoor: SHT30 temperature and humidity, a house and a drop as the only "titles".
  * Each column (symbol over value) is centred on itself and the pair is centred in the tile. */
 void WeatherDisplay::DrawIndoorTile(int x, int y)
 {
-   String t  = String(myData.sht30Temperatur);
-   String h  = String(myData.sht30Humidity);
-   int    w1 = TextWidth(FONT_TITLE, t) + 3 + TextWidth(FONT_CAP, "°C");
-   int    w2 = TextWidth(FONT_TITLE, h) + 3 + TextWidth(FONT_CAP, "%");
-   int    gap = 36;
-   int    x1 = x + (TILE_W - (w1 + gap + w2)) / 2;     // left of the temperature column
-   int    x2 = x1 + w1 + gap;                          // left of the humidity column
-   int    c1 = x1 + w1 / 2, c2 = x2 + w2 / 2;
-   int    base = y + 86;
+   String t   = String(myData.sht30Temperatur);
+   String h   = String(myData.sht30Humidity);
+   int    w1  = TextWidth(FONT_XTITLE, t) + 3 + TextWidth(FONT_XCAP, "°C");
+   int    w2  = TextWidth(FONT_XTITLE, h) + 3 + TextWidth(FONT_XCAP, "%");
+   int    gap = 32;
+   int    x1  = x + (TILE_W - (w1 + gap + w2)) / 2;   // left of the temperature column
+   int    x2  = x1 + w1 + gap;                        // left of the humidity column
+   int    c1  = x1 + w1 / 2, c2 = x2 + w2 / 2;
+   int    base = y + 103;
 
    DrawTile(x, y, TILE_W, TILE_H);
    // house
-   canvas.fillTriangle(c1 - 11, y + 28, c1 + 11, y + 28, c1, y + 16, INK_MID);
-   canvas.fillRect(c1 - 7, y + 28, 14, 10, INK_MID);
+   canvas.fillTriangle(c1 - 15, y + 36, c1 + 15, y + 36, c1, y + 19, INK_MID);
+   canvas.fillRect(c1 - 10, y + 36, 20, 13, INK_MID);
    // drop
-   canvas.fillCircle(c2, y + 31, 6, INK_MID);
-   canvas.fillTriangle(c2 - 6, y + 29, c2 + 6, y + 29, c2, y + 16, INK_MID);
+   canvas.fillCircle(c2, y + 38, 9, INK_MID);
+   canvas.fillTriangle(c2 - 9, y + 35, c2 + 9, y + 35, c2, y + 17, INK_MID);
 
-   DrawText(FONT_TITLE, x1, base, t);
-   DrawText(FONT_CAP, x1 + TextWidth(FONT_TITLE, t) + 3, base, "°C", INK_MID);
-   DrawText(FONT_TITLE, x2, base, h);
-   DrawText(FONT_CAP, x2 + TextWidth(FONT_TITLE, h) + 3, base, "%", INK_MID);
+   DrawText(FONT_XTITLE, x1, base, t);
+   DrawText(FONT_XCAP, x1 + TextWidth(FONT_XTITLE, t) + 3, base, "°C", INK_MID);
+   DrawText(FONT_XTITLE, x2, base, h);
+   DrawText(FONT_XCAP, x2 + TextWidth(FONT_XTITLE, h) + 3, base, "%", INK_MID);
 }
 
 /* ------------------------------------------------------------------ forecast */
@@ -524,9 +473,9 @@ void WeatherDisplay::DrawHourly(int x, int y, int dx, int dy, Weather &weather, 
       static const char *dayNames[8] = {"", "Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"};
       label = String(dayNames[weekday(time)]) + " " + label;
    }
-   DrawText(FONT_CAP, cx, y + 27, label, index == 0 ? INK : INK_MID, 1);
-   DrawWeatherIcon(cx - 32, y + 36, weather.hourlyIcon[index]);
-   DrawText(FONT_BODY, cx, y + 120, String(temp) + "°", INK, 1);
+   DrawText(FONT_CAP, cx, y + 25, label, index == 0 ? INK : INK_MID, 1);
+   DrawWeatherIcon(cx - 32, y + 31, weather.hourlyIcon[index]);
+   DrawText(FONT_BODY, cx, y + 116, String(temp) + "°", INK, 1);
 }
 
 /* Draw a graph card: caption, y range, 8 days.  bars = rain bars, values2 = optional second line */
@@ -594,17 +543,15 @@ void WeatherDisplay::Show()
    canvas.setTextColor(WHITE, BLACK);
    canvas.setTextDatum(TL_DATUM);
 
-   DrawHead();
-
    if (!myData.weather.valid) {   // download failed: do not draw misleading zeros
-      DrawNoData(M, TILE_Y0, TILE_X0 - M, 216);
+      DrawNoData(M, TILE_Y0, TILE_X0 - M, TOP_H);
       DrawIndoorTile(TILE_X1, TILE_Y0);
       canvas.pushCanvas(0, 0, UPDATE_MODE_GC16);
       delay(1000);
       return;
    }
 
-   DrawHero(M, TILE_Y0, TILE_X0 - M, 216);
+   DrawHero(M, TILE_Y0, TILE_X0 - M, TOP_H);
    DrawWindTile  (TILE_X0, TILE_Y0);
    DrawSunTile   (TILE_X1, TILE_Y0);
    DrawMoonTile  (TILE_X0, TILE_Y1);

@@ -19,11 +19,14 @@ DIGITS = "0123456789-°"
 
 # name, em size in px, weight, optical size, characters
 FONTS = [
-    ("HERO",  172, 230, 32, DIGITS),   # the big temperature
+    ("HERO",  188, 230, 32, DIGITS),   # the big temperature
     ("TITLE",  38, 600, 32, TEXT),     # tile values
     ("BODY",   26, 450, 20, TEXT),     # secondary lines
     ("CAP",    19, 520, 14, TEXT),     # captions
     ("TINY",   15, 560, 14, TEXT),     # graph axes
+    ("XTITLE", 48, 600, 32, TEXT),     # big tile values (top half)
+    ("XBODY",  28, 450, 20, TEXT),     # big secondary lines (top half)
+    ("XCAP",   22, 520, 14, TEXT),     # big units (top half)
 ]
 
 
