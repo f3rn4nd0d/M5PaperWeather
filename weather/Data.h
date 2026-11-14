@@ -77,7 +77,8 @@ public:
       Serial.println("Sunrise: "         + getDateTimeString(weather.sunrise));
       Serial.println("Sunset: "          + getDateTimeString(weather.sunset));
       Serial.println("Winddir: "         + String(weather.winddir));
-      Serial.println("Windspeed: "       + String(weather.windspeed));
+      Serial.println("Windspeed (km/h): " + String(weather.windspeed));
+      Serial.println("WeatherValid: "    + String(weather.valid));
    }
 
    /* Load the NVS data from the non volatile memory */

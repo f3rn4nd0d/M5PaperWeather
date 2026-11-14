@@ -14,6 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
+   Version 2.0: Grajera (Segovia), Open-Meteo data, Spanish interface, Casa Grajera logo.
    Version 1.1 by Fernando Doutel. Modified some parts of the original interface 
    to accomodate Thermal Comfort (AKA feels like temperature outside) plus 
    normalized moon phase
@@ -44,39 +45,46 @@
 MyData         myData;            // The collection of the global data
 WeatherDisplay myDisplay(myData); // The global display helper class
 
+/* Wifi + sensors + weather download. Returns true when the weather data is valid. */
+bool UpdateAll()
+{
+   bool ok = false;
+
+   if (StartWiFi(myData.wifiRSSI)) {
+      GetBatteryValues(myData);
+      GetSHT30Values(myData);
+      for (int attempt = 0; attempt < 3 && !ok; attempt++) {
+         ok = myData.weather.Get();
+         if (!ok) delay(5000);
+      }
+      if (ok) {
+         SetRTCDateTime(myData);
+      }
+      GetMoonValues(myData);
+      myData.Dump();
+      myDisplay.Show();   // shows a "no data" message when ok is false
+      StopWiFi();
+   } else {
+      GetBatteryValues(myData);
+      GetSHT30Values(myData);
+      myDisplay.Show();   // no wifi: the weather is not valid, so the no data message is shown
+   }
+   return ok;
+}
+
 /* Start and M5Paper instance */
 void setup()
 {
 //Serial.begin(115200); 
 #ifndef REFRESH_PARTLY
    InitEPD(true);
-   if (StartWiFi(myData.wifiRSSI)) {
-      GetBatteryValues(myData);
-      GetSHT30Values(myData);
-      GetMoonValues(myData);
-      if (myData.weather.Get()) {
-         SetRTCDateTime(myData);
-      }
-      myData.Dump();
-      myDisplay.Show();
-      StopWiFi();
-   }
-   ShutdownEPD(60 * 60); // every 1 hour
+   bool ok = UpdateAll();
+   ShutdownEPD(ok ? 60 * 60 : RETRY_MINUTES * 60); // every 1 hour, or retry soon after a failure
 #else 
    myData.LoadNVS();
    if (myData.nvsCounter == 1) {
       InitEPD(true);
-      if (StartWiFi(myData.wifiRSSI)) {
-         GetBatteryValues(myData);
-         GetSHT30Values(myData);
-         GetMoonValues(myData);
-         if (myData.weather.Get()) {
-            SetRTCDateTime(myData);
-         }
-         myData.Dump();
-         myDisplay.Show();
-         StopWiFi();
-      }
+      UpdateAll();
    } else {
       InitEPD(false);
       GetSHT30Values(myData);

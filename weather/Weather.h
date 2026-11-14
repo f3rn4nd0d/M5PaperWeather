@@ -25,6 +25,7 @@
 #include <ArduinoJson.h>
 #include <math.h>
 #include <string.h>
+#include "Utils.h"
 
 #define MAX_HOURLY   24
 #define MAX_FORECAST  8
@@ -117,7 +118,7 @@ protected:
    bool GetOpenMeteoJsonDoc(DynamicJsonDocument &doc)
    {
       // Only the fields we need are kept: this saves a lot of RAM.
-      StaticJsonDocument<512> filter;
+      StaticJsonDocument<1024> filter;   // ~25 entries: 400 bytes on ESP32, 600 on a 64 bit PC
       filter["utc_offset_seconds"] = true;
       JsonObject fc = filter.createNestedObject("current");
       fc["time"] = true; fc["temperature_2m"] = true; fc["apparent_temperature"] = true;
