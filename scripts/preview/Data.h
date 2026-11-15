@@ -31,6 +31,7 @@ struct String {
    String(float v) : s(std::to_string(v)) {}
    const char *c_str() const { return s.c_str(); }
    size_t length() const { return s.size(); }
+   int indexOf(const char *o) const { size_t i = s.find(o); return i == std::string::npos ? -1 : (int) i; }
    bool operator==(const char *o) const { return s == o; }
    String operator+(const String &o) const { return String(s + o.s); }
    String operator+(const char *o) const { return String(s + o); }
@@ -48,6 +49,7 @@ struct M5EPD_Canvas {
    std::vector<uint8_t> buf; int w = 0, h = 0;
    M5EPD_Canvas(void *) {}
    void createCanvas(int W, int H) { w = W; h = H; buf.assign(W * H, 0); }
+   void deleteCanvas() { buf.clear(); w = h = 0; }
    void fillCanvas(int c) { std::fill(buf.begin(), buf.end(), c); }
    void setTextSize(int) {} void setTextColor(int, int) {} void setTextDatum(int) {}
    void drawPixel(int x, int y, uint32_t c) { if (x >= 0 && y >= 0 && x < w && y < h) buf[y * w + x] = c; }
@@ -106,7 +108,18 @@ struct Weather {
       for (int i = 0; i < 8; i++) { forecastTime[i] = 1794139440 - 12 * 3600 + i * 86400; forecastMaxTemp[i] = mx[i]; forecastMinTemp[i] = mn[i]; forecastRain[i] = rn[i]; forecastHumidity[i] = hu[i]; forecastPressure[i] = pr[i]; }
    }
 };
+// --- Home Assistant mock ----------------------------------------------------------------
+inline bool HaConfigured() { return true; }
+struct HAData {
+   bool valid = true;
+   float thCur = 21.5, thSet = 22, carBat = 78, carRange = 164, carMinLeft = 134, evKw = 7.2, evSession = 12.4, dhHum = 62, vacBat = 87, litCount = 3;
+   String thMode = "heat", thAction = "heating", carCharge = "charging", carPlug = "plugged_in", evStatus = "Charging",
+          dhState = "on", vacState = "docked", litState = "Disponible";
+   bool dhTankFull = false, dhFilter = true;
+};
 struct MyData {
+   uint8_t page = 0;
+   HAData ha;
    int wifiRSSI = -62, batteryCapacity = 78, sht30Temperatur = 21, sht30Humidity = 48;
    time_t moonRise = 1794139440 + 2 * 3600 + 13 * 60 - 12 * 3600, moonSet = 1794139440 + 2 * 3600 + 40 * 60;
    Weather weather;

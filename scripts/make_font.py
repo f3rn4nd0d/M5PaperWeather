@@ -20,6 +20,7 @@ DIGITS = "0123456789-°"
 # name, em size in px, weight, optical size, characters
 FONTS = [
     ("HERO",  188, 230, 32, DIGITS),   # the big temperature
+    ("HERO_A", 172, 230, 32, DIGITS),   # layout A hero
     ("TITLE",  38, 600, 32, TEXT),     # tile values
     ("BODY",   26, 450, 20, TEXT),     # secondary lines
     ("CAP",    19, 520, 14, TEXT),     # captions
@@ -27,6 +28,7 @@ FONTS = [
     ("XTITLE", 48, 600, 32, TEXT),     # big tile values (top half)
     ("XBODY",  28, 450, 20, TEXT),     # big secondary lines (top half)
     ("XCAP",   22, 520, 14, TEXT),     # big units (top half)
+    ("BIG",   118, 300, 32, "0123456789-°%,. "),  # Home Assistant tile values
 ]
 
 

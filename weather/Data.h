@@ -22,6 +22,7 @@
 #pragma once
 
 #include "Weather.h"
+#include "HomeAssistant.h"
 #include <nvs.h>
 
 
@@ -43,16 +44,20 @@ public:
    time_t  moonSet;          //!< Calculated moon set
    
    Weather weather;          //!< All the openweathermap data
+   HAData  ha;               //!< Home Assistant values (page 3)
+   uint8_t page;             //!< Page shown (0 weather with header, 1 weather clean, 2 Home Assistant), kept in NVS
 
 public:
    MyData()
-      : wifiRSSI(0)
+      : nvsCounter(1)
+      , wifiRSSI(0)
       , batteryVolt(0.0)
       , batteryCapacity(0)
       , sht30Temperatur(0)
       , sht30Humidity(0)
       , moonRise(0)
       , moonSet(0)
+      , page(0)
    {
    }
 
@@ -81,21 +86,28 @@ public:
       Serial.println("WeatherValid: "    + String(weather.valid));
    }
 
-   /* Load the NVS data from the non volatile memory */
+   /* Load the NVS data from the non volatile memory (missing keys keep their defaults) */
    void LoadNVS()
    {
       nvs_handle nvs_arg;
-      nvs_open("Setting", NVS_READONLY, &nvs_arg);
-      nvs_get_u16(nvs_arg, "nvsCounter", &nvsCounter);
+
+      if (nvs_open("Setting", NVS_READONLY, &nvs_arg) != ESP_OK) return;
+      uint16_t counter = 0;
+      uint8_t  p       = 0;
+
+      if (nvs_get_u16(nvs_arg, "nvsCounter", &counter) == ESP_OK) nvsCounter = counter;
+      if (nvs_get_u8(nvs_arg, "page", &p) == ESP_OK)              page = p;
       nvs_close(nvs_arg);
    }
-   
+
    /* Store the NVS data to the non volatile memory */
    void SaveNVS()
    {
       nvs_handle nvs_arg;
-      nvs_open("Setting", NVS_READWRITE, &nvs_arg);
+
+      if (nvs_open("Setting", NVS_READWRITE, &nvs_arg) != ESP_OK) return;
       nvs_set_u16(nvs_arg, "nvsCounter", nvsCounter);
+      nvs_set_u8(nvs_arg, "page", page);
       nvs_commit(nvs_arg);
       nvs_close(nvs_arg);
    }
