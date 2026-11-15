@@ -9,3 +9,8 @@
 tools
 ## Secrets ############
 weather/HASecrets.h
+## Debug / local artefacts ##
+weather/debug.cfg
+weather/debug_custom.json
+weather/esp32.svd
+*.bundle
