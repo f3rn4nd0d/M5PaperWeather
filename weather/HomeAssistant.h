@@ -38,7 +38,7 @@ inline bool HaConfigured() { return HA_TOKEN[0] != 0; }
    "'dh_tank':"  HA_ST(HA_DEHUM_TANK) "," \
    "'dh_filt':"  HA_ST(HA_DEHUM_FILTER) "," \
    "'vac_st':"   HA_ST(HA_VACUUM) "," \
-   "'vac_bat':"  HA_ATTR(HA_VACUUM, "battery_level") "," \
+   "'vac_bat':"  HA_ST(HA_VACUUM_BATTERY) "," \
    "'lit_st':"   HA_ST(HA_LITTER) "," \
    "'lit_n':"    HA_ST(HA_LITTER_COUNT) \
    "} | tojson }}"

@@ -145,6 +145,15 @@ protected:
       return s.length() ? s : String("–");
    }
 
+   static String LitterText(const String &s)
+   {
+      if (s == "standby") return "En espera";
+      if (s == "cleaning") return "Limpiando";
+      if (s == "deodorization") return "Desodorizando";
+      if (s == "sleep") return "En reposo";
+      return s;
+   }
+
    static String ModeText(const String &s)
    {
       if (s == "heat") return "Calefacción";
@@ -200,7 +209,7 @@ protected:
       t[5].caption = "Arenero";
       t[5].value   = isnan(h.litCount) ? String("–") : Whole(h.litCount);
       t[5].line1   = isnan(h.litCount) ? String("") : (h.litCount == 1 ? String("visita hoy") : String("visitas hoy"));
-      t[5].line2   = h.litState;
+      t[5].line2   = LitterText(h.litState);
    }
 
 public:

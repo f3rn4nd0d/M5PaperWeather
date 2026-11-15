@@ -29,6 +29,7 @@
 #define HA_DEHUM_FILTER    "binary_sensor.deshumidificador_filter_needs_cleaning"
 // Roborock vacuum
 #define HA_VACUUM          "vacuum.roborock_qrevo_edge_series"
+#define HA_VACUUM_BATTERY  "sensor.roborock_qrevo_edge_series_bateria"
 // Litter box
 #define HA_LITTER          "sensor.arenero_autolimpiable_snow_estado"
 #define HA_LITTER_COUNT    "sensor.arenero_autolimpiable_snow_tiempos_de_excrecion_dia"
